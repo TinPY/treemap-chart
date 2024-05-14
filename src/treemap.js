@@ -20,6 +20,7 @@ export default Kapsule({
     children: { default: 'children', onChange(_, state) { state.needsReparse = true }},
     sort: { onChange(_, state) { state.needsReparse = true }},
     label: { default: d => d.name },
+    subtitulo: { default: d => d.name },
     size: {
       default: 'value',
       onChange: function(_, state) { this.zoomReset(); state.needsReparse = true; }
@@ -163,6 +164,7 @@ export default Kapsule({
     );
 
     const nameOf = accessorFn(state.label);
+    const subtituloOf = accessorFn(state.subtitulo);
     const colorOf = accessorFn(state.color);
     const nodeClassNameOf = accessorFn(state.nodeClassName);
 
@@ -218,6 +220,13 @@ export default Kapsule({
         .append('text')
           .attr('class', 'path-label');
 
+    const subtitulo = newCell.append('g')
+        .attr('clip-path', d => `url(#clip-${d.id})`)
+        .append('g')
+        .attr('class', 'subtitulo-container')
+        .append('text')
+        .attr('class', 'path-subtitulo');
+
     // Entering + Updating
     const allCells = cell.merge(newCell);
 
@@ -238,7 +247,12 @@ export default Kapsule({
     allCells.select('g.label-container')
       .style('display', state.showLabels ? null : 'none')
       .transition(transition)
-        .attr('transform', d => `translate(${(d.x1-d.x0)/2},${(d.y1-d.y0)/2})`);
+        .attr('transform', d => `translate(${(d.x1-d.x0)/2},${(d.y1-d.y0-5)/2})`);
+
+    allCells.select('g.subtitulo-container')
+        .style('display', state.showLabels ? null : 'none')
+        .transition(transition)
+        .attr('transform', d => `translate(${(d.x1-d.x0)/2},${(d.y1-d.y0+16)/2})`);
 
     if (state.showLabels) {
       // Update previous scale
@@ -252,6 +266,19 @@ export default Kapsule({
           .style('opacity', d =>
             LABELS_WIDTH_OPACITY_SCALE((d.x1 - d.x0) * zoomTr.k / nameOf(d.data).length)
             * LABELS_HEIGHT_OPACITY_SCALE((d.y1 - d.y0) * zoomTr.k)
+          )
+          .attrTween('transform', function () {
+            const kTr = d3Interpolate(prevK, zoomTr.k);
+            return t => `scale(${1 / kTr(t)})`;
+          });
+
+      allCells.select('text.path-subtitulo')
+          .classed('light', d => !tinycolor(colorOf(d.data, d.parent)).isLight())
+          .text(d => subtituloOf(d.data))
+          .transition(transition)
+          .style('opacity', d =>
+              LABELS_WIDTH_OPACITY_SCALE((d.x1 - d.x0) * zoomTr.k / nameOf(d.data).length)
+              * LABELS_HEIGHT_OPACITY_SCALE((d.y1 - d.y0) * zoomTr.k)
           )
           .attrTween('transform', function () {
             const kTr = d3Interpolate(prevK, zoomTr.k);

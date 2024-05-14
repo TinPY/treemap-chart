@@ -41,6 +41,8 @@ export interface TreemapChartGenericInstance<ChainableInstance> {
   children(childrenAccessor: NodeAccessor<Node[]>): ChainableInstance;
   label(): NodeAccessor<string>;
   label(textAccessor: NodeAccessor<string>): ChainableInstance;
+  subtitulo(): NodeAccessor<string>;
+  subtitulo(textAccessor: NodeAccessor<string>): ChainableInstance;
   size(): NodeAccessor<string>;
   size(sizeAccessor: NodeAccessor<string>): ChainableInstance;
   padding(): number;
